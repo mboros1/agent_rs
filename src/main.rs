@@ -2,11 +2,13 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use std::env;
 
+mod function;
 mod message;
 mod request;
 mod response;
 
 // Re-export if needed
+pub use function::*;
 pub use message::*;
 pub use request::*;
 pub use response::*;
