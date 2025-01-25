@@ -137,6 +137,31 @@ fn default_top_p() -> f32 {
     1.0
 }
 
+// Add these response structs
+#[derive(Debug, Serialize, Deserialize)]
+struct DeepSeekResponse {
+    id: String,
+    object: String,
+    created: u64,
+    model: String,
+    choices: Vec<Choice>,
+    usage: Usage,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Choice {
+    index: u32,
+    message: Message,
+    finish_reason: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Usage {
+    prompt_tokens: u32,
+    completion_tokens: u32,
+    total_tokens: u32,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
@@ -189,11 +214,42 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Status: {}", response.status());
     let response_text = response.text().await?;
-    let response_json: Value = serde_json::from_str(&response_text)?;
-    println!(
-        "Response: {}",
-        serde_json::to_string_pretty(&response_json)?
-    );
+
+    // Try to parse successful response first
+    match serde_json::from_str::<DeepSeekResponse>(&response_text) {
+        Ok(parsed) => {
+            println!("Successfully parsed response:");
+            println!("{}", serde_json::to_string_pretty(&parsed)?);
+        }
+        Err(_) => {
+            // Fallback to error parsing
+            #[derive(Debug, Serialize, Deserialize)]
+            struct ApiError {
+                error: ErrorDetail,
+            }
+
+            #[derive(Debug, Serialize, Deserialize)]
+            struct ErrorDetail {
+                message: String,
+                #[serde(rename = "type")]
+                error_type: String,
+                param: Option<String>,
+                code: String,
+            }
+
+            match serde_json::from_str::<ApiError>(&response_text) {
+                Ok(error) => {
+                    eprintln!("API Error:");
+                    eprintln!("{}", serde_json::to_string_pretty(&error)?);
+                }
+                Err(e) => {
+                    eprintln!("Failed to parse response ({} bytes):", response_text.len());
+                    eprintln!("Raw response: {}", response_text);
+                    return Err(e.into());
+                }
+            }
+        }
+    }
 
     Ok(())
 }
