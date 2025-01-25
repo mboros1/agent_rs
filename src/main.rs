@@ -2,33 +2,14 @@ use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use serde::{Deserialize, Serialize};
 use std::env;
 
+mod message;
 mod request;
-use crate::request::*;
+mod response;
 
-// Add these response structs
-#[derive(Debug, Serialize, Deserialize)]
-struct DeepSeekResponse {
-    id: String,
-    object: String,
-    created: u64,
-    model: String,
-    choices: Vec<Choice>,
-    usage: Usage,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Choice {
-    index: u32,
-    message: Message,
-    finish_reason: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Usage {
-    prompt_tokens: u32,
-    completion_tokens: u32,
-    total_tokens: u32,
-}
+// Re-export if needed
+pub use message::*;
+pub use request::*;
+pub use response::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
