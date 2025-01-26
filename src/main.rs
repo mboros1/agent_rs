@@ -34,11 +34,10 @@ struct WeatherParams {
     unit: TemperatureUnit,
 }
 
-#[derive(Clone)]
 struct LLMConfig {
     pub base_url: String,
     pub api_key: String,
-    pub model: String,
+    pub model: Model,
 }
 
 async fn get_weather(location: &str, unit: TemperatureUnit) -> serde_json::Value {
@@ -62,14 +61,16 @@ fn build_headers(api_key: &str) -> anyhow::Result<HeaderMap> {
     Ok(headers)
 }
 
+const DEEP_SEEK_URL: &str = "https://api.deepseek.com/chat/completions";
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
 
     let config = LLMConfig {
-        base_url: "https://api.deepseek.com/chat/completions".into(),
+        base_url: DEEP_SEEK_URL.into(),
         api_key: env::var("DEEPSEEK_API_KEY")?,
-        model: "deepseek-chat".into(),
+        model: Model::DeepseekChat,
     };
 
     let headers = build_headers(&config.api_key)?;
@@ -99,7 +100,7 @@ async fn main() -> anyhow::Result<()> {
                 name: None,
             },
         ],
-        model: Model::DeepseekChat,
+        model: config.model,
         frequency_penalty: Some(0.0),
         max_tokens: Some(2048),
         presence_penalty: Some(0.0),
@@ -119,7 +120,7 @@ async fn main() -> anyhow::Result<()> {
 
     let client = reqwest::Client::new();
     let response = client
-        .post(config.base_url.clone())
+        .post(&config.base_url)
         .headers(headers.clone())
         .json(&request)
         .send()
@@ -174,7 +175,7 @@ async fn main() -> anyhow::Result<()> {
                     };
 
                     let final_response = client
-                        .post(config.base_url.clone())
+                        .post(&config.base_url)
                         .headers(headers)
                         .json(&follow_up_request)
                         .send()
