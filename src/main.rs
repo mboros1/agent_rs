@@ -5,12 +5,14 @@ use serde::{Deserialize, Serialize};
 use std::env;
 
 mod function;
+mod llm_config;
 mod message;
 mod request;
 mod response;
 
 // Re-export if needed
 pub use function::*;
+pub use llm_config::*;
 pub use message::*;
 pub use request::*;
 pub use response::*;
@@ -32,12 +34,6 @@ struct WeatherParams {
     #[schemars(description = "Temperature unit")]
     #[serde(default)]
     unit: TemperatureUnit,
-}
-
-struct LLMConfig {
-    pub base_url: String,
-    pub api_key: String,
-    pub model: Model,
 }
 
 async fn get_weather(location: &str, unit: TemperatureUnit) -> serde_json::Value {
@@ -62,11 +58,19 @@ fn build_headers(api_key: &str) -> anyhow::Result<HeaderMap> {
 }
 
 const DEEP_SEEK_URL: &str = "https://api.deepseek.com/chat/completions";
+const OPENAI_URL: &str = "";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
 
+    /*
+    let config = LLMConfig {
+        base_url: DEEP_SEEK_URL.into(),
+        api_key: env::var("DEEPSEEK_API_KEY")?,
+        model: Model::DeepseekChat,
+    };
+    */
     let config = LLMConfig {
         base_url: DEEP_SEEK_URL.into(),
         api_key: env::var("DEEPSEEK_API_KEY")?,
