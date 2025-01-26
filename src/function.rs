@@ -1,31 +1,32 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ToolCall {
-    id: String,
+    pub id: String,
     #[serde(rename = "type")]
-    tool_type: String,
-    function: FunctionCall,
+    pub type_: String,
+    pub function: FunctionCall,
+    pub index: u32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FunctionCall {
-    name: String,
-    arguments: String,
+    pub name: String,
+    pub arguments: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Function {
-    name: String,
-    description: String,
-    parameters: serde_json::Value,
+    pub name: String,
+    pub description: String,
+    pub parameters: serde_json::Value,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Tool {
     #[serde(rename = "type")]
-    tool_type: ToolType,
-    function: Function,
+    pub tool_type: ToolType,
+    pub function: Function,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,18 +36,14 @@ pub enum ToolType {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(rename_all = "snake_case")]
 pub enum ToolChoice {
-    #[serde(rename = "none")]
     None,
-    #[serde(rename = "auto")]
     Auto,
-    #[serde(rename = "required")]
     Required,
-    Named {
-        #[serde(rename = "type")]
-        tool_type: ToolType,
-        function: FunctionChoice,
+    #[serde(rename = "function")]
+    Function {
+        name: String,
     },
 }
 

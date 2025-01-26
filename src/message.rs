@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+use crate::ToolCall;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(tag = "role", rename_all = "snake_case")]
 pub enum Message {
     System {
@@ -17,8 +19,7 @@ pub enum Message {
         content: String,
         #[serde(skip_serializing_if = "Option::is_none")]
         name: Option<String>,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        tool_call_id: Option<String>,
+        tool_calls: Option<Vec<ToolCall>>,
     },
     Tool {
         content: String,
