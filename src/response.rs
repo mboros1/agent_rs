@@ -4,7 +4,7 @@ use crate::{message::Message, ToolCall};
 
 // Add these response structs
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DeepSeekResponse {
+pub struct LLLMResponse {
     pub id: String,
     pub object: String,
     pub created: u64,

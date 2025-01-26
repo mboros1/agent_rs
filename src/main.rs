@@ -34,6 +34,13 @@ struct WeatherParams {
     unit: TemperatureUnit,
 }
 
+#[derive(Clone)]
+struct LLMConfig {
+    pub base_url: String,
+    pub api_key: String,
+    pub model: String,
+}
+
 async fn get_weather(location: &str, unit: TemperatureUnit) -> serde_json::Value {
     // Mock weather data - replace with real API call in production
     serde_json::json!({
@@ -58,10 +65,14 @@ fn build_headers(api_key: &str) -> anyhow::Result<HeaderMap> {
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
-    let api_key = env::var("DEEPSEEK_API_KEY")?;
-    let url = "https://api.deepseek.com/chat/completions";
 
-    let headers = build_headers(&api_key)?;
+    let config = LLMConfig {
+        base_url: "https://api.deepseek.com/chat/completions".into(),
+        api_key: env::var("DEEPSEEK_API_KEY")?,
+        model: "deepseek-chat".into(),
+    };
+
+    let headers = build_headers(&config.api_key)?;
 
     let weather_schema = schemars::schema_for!(WeatherParams);
 
@@ -108,7 +119,7 @@ async fn main() -> anyhow::Result<()> {
 
     let client = reqwest::Client::new();
     let response = client
-        .post(url)
+        .post(config.base_url.clone())
         .headers(headers.clone())
         .json(&request)
         .send()
@@ -129,7 +140,7 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-    let response_data: DeepSeekResponse = serde_json::from_str(&response_text)?;
+    let response_data: LLLMResponse = serde_json::from_str(&response_text)?;
 
     if let Some(choice) = response_data.choices.first() {
         match &choice.message {
@@ -163,7 +174,7 @@ async fn main() -> anyhow::Result<()> {
                     };
 
                     let final_response = client
-                        .post(url)
+                        .post(config.base_url.clone())
                         .headers(headers)
                         .json(&follow_up_request)
                         .send()
@@ -190,7 +201,7 @@ async fn main() -> anyhow::Result<()> {
                     }
 
                     // Process final response
-                    let final_data: DeepSeekResponse = serde_json::from_str(&final_text)?;
+                    let final_data: LLLMResponse = serde_json::from_str(&final_text)?;
 
                     if let Some(final_choice) = &final_data.choices.first() {
                         match &final_choice.message {
