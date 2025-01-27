@@ -193,7 +193,7 @@ async fn main() -> anyhow::Result<()> {
 
                     let final_response = client
                         .post(&config.base_url)
-                        .headers(headers)
+                        .headers(headers.clone())
                         .json(&follow_up_request)
                         .send()
                         .await
