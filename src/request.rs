@@ -17,6 +17,8 @@ pub enum MessageRole {
 pub enum Model {
     DeepseekChat,
     DeepseekReasoner,
+    #[serde(rename = "gpt-4o")]
+    OpenAiGpt4o,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

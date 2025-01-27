@@ -6,7 +6,7 @@ pub struct ToolCall {
     #[serde(rename = "type")]
     pub type_: String,
     pub function: FunctionCall,
-    pub index: u32,
+    pub index: Option<u32>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

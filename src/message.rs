@@ -16,7 +16,7 @@ pub enum Message {
         name: Option<String>,
     },
     Assistant {
-        content: String,
+        content: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         name: Option<String>,
         tool_calls: Option<Vec<ToolCall>>,

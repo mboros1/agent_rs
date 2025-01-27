@@ -58,7 +58,7 @@ fn build_headers(api_key: &str) -> anyhow::Result<HeaderMap> {
 }
 
 const DEEP_SEEK_URL: &str = "https://api.deepseek.com/chat/completions";
-const OPENAI_URL: &str = "";
+const OPENAI_URL: &str = "https://api.openai.com/v1/chat/completions";
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -72,9 +72,9 @@ async fn main() -> anyhow::Result<()> {
     };
     */
     let config = LLMConfig {
-        base_url: DEEP_SEEK_URL.into(),
-        api_key: env::var("DEEPSEEK_API_KEY")?,
-        model: Model::DeepseekChat,
+        base_url: OPENAI_URL.into(),
+        api_key: env::var("OPENAI_API_KEY")?,
+        model: Model::OpenAiGpt4o,
     };
 
     let headers = build_headers(&config.api_key)?;
@@ -145,7 +145,20 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
-    let response_data: LLLMResponse = serde_json::from_str(&response_text)?;
+    let parsed_response: Result<LLLMResponse, serde_json::Error> =
+        serde_json::from_str(&response_text);
+
+    let response_data = match parsed_response {
+        Ok(response_data) => {
+            // Successfully parsed the response, proceed with the parsed data
+            response_data
+        }
+        Err(err) => {
+            // Pretty print the JSON if parsing fails
+
+            bail!("Failed to parse, Error: {}, JSON: {}", err, response_text);
+        }
+    };
 
     if let Some(choice) = response_data.choices.first() {
         match &choice.message {
@@ -173,7 +186,7 @@ async fn main() -> anyhow::Result<()> {
                     let follow_up_request = ChatCompletionRequest {
                         messages: new_messages,
                         tool_choice: None,
-                        model: Model::DeepseekChat,
+                        model: Model::OpenAiGpt4o,
                         temperature: 0.7, // More focused response
                         ..request
                     };
@@ -211,7 +224,7 @@ async fn main() -> anyhow::Result<()> {
                     if let Some(final_choice) = &final_data.choices.first() {
                         match &final_choice.message {
                             Message::Assistant { content, .. } => {
-                                println!("Result after function call: {}", content);
+                                println!("Result after function call: {:?}", content);
                                 println!("Full result: {:?}", final_data);
                             }
                             _ => bail!("Expected an assistant message"),
