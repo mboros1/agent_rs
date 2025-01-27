@@ -17,7 +17,7 @@ pub use message::*;
 pub use request::*;
 pub use response::*;
 
-#[derive(JsonSchema, Serialize, Deserialize, Default, Debug)]
+#[derive(JsonSchema, Serialize, Deserialize, Default, Debug, Clone, Copy)]
 enum TemperatureUnit {
     #[serde(rename = "celsius")]
     Celsius,
@@ -64,18 +64,18 @@ const OPENAI_URL: &str = "https://api.openai.com/v1/chat/completions";
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
 
-    /*
     let config = LLMConfig {
         base_url: DEEP_SEEK_URL.into(),
         api_key: env::var("DEEPSEEK_API_KEY")?,
         model: Model::DeepseekChat,
     };
+    /*
+        let config = LLMConfig {
+            base_url: OPENAI_URL.into(),
+            api_key: env::var("OPENAI_API_KEY")?,
+            model: Model::OpenAiGpt4o,
+        };
     */
-    let config = LLMConfig {
-        base_url: OPENAI_URL.into(),
-        api_key: env::var("OPENAI_API_KEY")?,
-        model: Model::OpenAiGpt4o,
-    };
 
     let headers = build_headers(&config.api_key)?;
 
@@ -186,7 +186,7 @@ async fn main() -> anyhow::Result<()> {
                     let follow_up_request = ChatCompletionRequest {
                         messages: new_messages,
                         tool_choice: None,
-                        model: Model::OpenAiGpt4o,
+                        model: config.model,
                         temperature: 0.7, // More focused response
                         ..request
                     };

@@ -12,7 +12,7 @@ pub enum MessageRole {
     Tool,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "kebab-case")]
 pub enum Model {
     DeepseekChat,
@@ -27,7 +27,7 @@ pub struct ResponseFormat {
     pub format_type: ResponseFormatType,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum ResponseFormatType {
     Text,
